@@ -1,0 +1,52 @@
+services:
+  postgres:
+    image: postgres:15-alpine
+    container_name: torii-postgres
+    environment:
+      POSTGRES_DB: torii
+      POSTGRES_USER: torii
+      POSTGRES_PASSWORD: torii
+    ports:
+      - "5432:5432"
+    volumes:
+      - postgres_data:/var/lib/postgresql/data
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U torii"]
+      interval: 10s
+      timeout: 5s
+      retries: 5
+
+  torii:
+    image: ghcr.io/dojoengine/torii:latest
+    container_name: torii-indexer
+    depends_on:
+      postgres:
+        condition: service_healthy
+    ports:
+      - "8080:8080"  # GraphQL API
+      - "8081:8081"  # gRPC
+      - "9090:9090"  # Metrics
+    volumes:
+      - ./torii.toml:/root/.config/torii.toml:ro
+    command: ["--config", "/root/.config/torii.toml"]
+    environment:
+      RUST_LOG: info
+      DATABASE_URL: postgres://torii:torii@postgres:5432/torii
+    restart: unless-stopped
+
+  # Optional: GraphQL Playground (if not using Torii's built-in)
+  # graphql-playground:
+  #   image: graphql/playground
+  #   container_name: graphql-playground
+  #   ports:
+  #     - "3001:3000"
+  #   environment:
+  #     ENDPOINT: http://localhost:8080/graphql
+
+volumes:
+  postgres_data:
+    driver: local
+
+networks:
+  default:
+    name: torii-network
