@@ -1,0 +1,155 @@
+# GraphQL Schema for Game Asset Aggregation
+# This schema defines the structure for querying indexed game data from Torii
+
+# Universal asset type that normalizes data across games
+type Asset {
+  id: ID!
+  gameId: String!
+  gameName: String!
+  assetType: AssetType!
+  name: String!
+  description: String
+  imageUrl: String
+  owner: String!
+  contractAddress: String!
+  tokenId: String!
+  attributes: [Attribute!]!
+  listedForSale: Boolean!
+  price: String
+  listedAt: String
+  createdAt: String!
+  updatedAt: String!
+}
+
+enum AssetType {
+  CHARACTER
+  ITEM
+  ACHIEVEMENT
+  CURRENCY
+  NFT
+  OTHER
+}
+
+type Attribute {
+  traitType: String!
+  value: String!
+  displayType: String
+}
+
+# Achievement type for cross-game achievements
+type Achievement {
+  id: ID!
+  gameId: String!
+  name: String!
+  description: String!
+  points: Int!
+  isCrossGame: Boolean!
+  unlockedBy: [String!]!
+  imageUrl: String
+}
+
+# Player achievement record
+type PlayerAchievement {
+  achievementId: ID!
+  player: String!
+  unlockedAt: String!
+  gameContract: String!
+}
+
+# Marketplace listing
+type Listing {
+  id: ID!
+  seller: String!
+  gameContract: String!
+  assetId: String!
+  priceBtcSats: String!
+  isActive: Boolean!
+  listedAt: String!
+}
+
+# Game information
+type Game {
+  id: ID!
+  contractAddress: String!
+  name: String!
+  isVerified: Boolean!
+  registeredAt: String!
+  totalAssets: Int!
+  totalListings: Int!
+}
+
+# Player profile across all games
+type PlayerProfile {
+  address: String!
+  totalAssets: Int!
+  totalAchievements: Int!
+  totalPoints: Int!
+  games: [String!]!
+}
+
+# Query root
+type Query {
+  # Asset queries
+  asset(id: ID!): Asset
+  assets(
+    owner: String
+    gameId: String
+    assetType: AssetType
+    limit: Int = 20
+    offset: Int = 0
+  ): [Asset!]!
+  
+  # Marketplace queries
+  listing(id: ID!): Listing
+  activeListings(
+    gameId: String
+    limit: Int = 20
+    offset: Int = 0
+  ): [Listing!]!
+  userListings(seller: String!): [Listing!]!
+  
+  # Achievement queries
+  achievement(id: ID!): Achievement
+  achievements(gameId: String): [Achievement!]!
+  playerAchievements(player: String!, gameId: String): [PlayerAchievement!]!
+  crossGameAchievements: [Achievement!]!
+  
+  # Game queries
+  game(id: ID!): Game
+  games(verifiedOnly: Boolean = false): [Game!]!
+  verifiedGames: [Game!]!
+  
+  # Player queries
+  playerProfile(address: String!): PlayerProfile
+  playerAssets(address: String!, gameId: String): [Asset!]!
+  playerTotalPoints(address: String!): Int!
+}
+
+# Subscription for real-time updates
+type Subscription {
+  assetListed: Listing!
+  assetSold: Listing!
+  achievementUnlocked: PlayerAchievement!
+  newAssetMinted: Asset!
+}
+
+# Input types for mutations (if needed)
+input ListAssetInput {
+  gameContract: String!
+  assetId: String!
+  priceBtcSats: String!
+}
+
+input UnlockAchievementInput {
+  achievementId: ID!
+  player: String!
+  gameContract: String!
+}
+
+# Mutations (optional - contracts handle this, but useful for testing)
+type Mutation {
+  # These would typically be handled by smart contracts
+  # Listed here for documentation purposes
+  listAsset(input: ListAssetInput!): Listing
+  unlockAchievement(input: UnlockAchievementInput!): PlayerAchievement
+}

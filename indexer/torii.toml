@@ -1,0 +1,54 @@
+# Torii Indexer Configuration
+# Documentation: https://book.dojoengine.org/toolchain/torii
+
+[indexer]
+# World contract addresses to index (add your deployed world addresses here)
+world_addresses = [
+    # "0x..."  # Game 1 world address
+    # "0x..."  # Game 2 world address
+]
+
+# Starknet RPC endpoint
+rpc_url = "https://starknet-sepolia.public.blastapi.io"
+
+# Starting block for indexing (0 = from genesis)
+start_block = 0
+
+# Number of blocks to process in parallel
+polling_interval_secs = 5
+
+[database]
+# PostgreSQL connection string
+# Use 'postgres' hostname when running in Docker, 'localhost' when running locally
+url = "postgres://torii:torii@postgres:5432/torii"
+# url = "postgres://torii:torii@localhost:5432/torii"
+
+[graphql]
+# GraphQL API settings
+host = "0.0.0.0"
+port = 8080
+
+# Enable GraphQL playground
+playground = true
+
+[grpc]
+# gRPC settings for real-time subscriptions
+host = "0.0.0.0"
+port = 8081
+
+[metrics]
+# Prometheus metrics endpoint
+enabled = true
+host = "0.0.0.0"
+port = 9090
+
+[events]
+# Event indexing configuration
+# Index all events by default
+raw = true
+
+# Custom event filters (optional)
+# filters = [
+#     { event_name = "AssetListed", model = "Listing" },
+#     { event_name = "AssetSold", model = "Sale" }
+# ]
