@@ -491,7 +491,7 @@ export function getAtomiqClient(config?: Partial<AtomiqConfig>): AtomiqClient {
         process.env.NEXT_PUBLIC_STARKNET_RPC_URL ||
         'https://starknet-sepolia.public.blastapi.io/rpc/v0_7',
       bitcoinNetwork:
-        (process.env.NEXT_PUBLIC_BITCOIN_NETWORK as 'mainnet' | 'testnet') ||
+        (process.env.NEXT_PUBLIC_BITCOIN_NETWORK as 'mainnet' | 'testnet' | 'testnet4') ||
         'testnet',
       pricingFeeDifferencePPM: BigInt(20000), // 2% max price difference
     };
