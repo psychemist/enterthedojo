@@ -34,7 +34,7 @@ const BitcoinWalletContext = createContext<BitcoinWalletContextType | undefined>
 
 export function BitcoinWalletProvider({ 
   children,
-  network = 'testnet' 
+  network = 'testnet4' 
 }: { 
   children: React.ReactNode;
   network?: BitcoinNetwork;
@@ -64,14 +64,22 @@ export function BitcoinWalletProvider({
       setConnecting(true);
       setError(null);
 
+      // Map network to BitcoinNetworkType
+      let networkType: BitcoinNetworkType;
+      if (network === 'mainnet') {
+        networkType = BitcoinNetworkType.Mainnet;
+      } else if (network === 'testnet4') {
+        networkType = BitcoinNetworkType.Testnet4;
+      } else {
+        networkType = BitcoinNetworkType.Testnet;
+      }
+
       const getAddressOptions = {
         payload: {
           purposes: [AddressPurpose.Payment, AddressPurpose.Ordinals],
           message: 'Connect to Universal Gaming Hub',
           network: {
-            type: network === 'mainnet' 
-              ? BitcoinNetworkType.Mainnet 
-              : BitcoinNetworkType.Testnet,
+            type: networkType,
           },
         },
         onFinish: (response: GetAddressResponse) => {
@@ -140,10 +148,16 @@ export function BitcoinWalletProvider({
   const fetchBalance = useCallback(async (address: string) => {
     try {
       // Use a Bitcoin API to fetch balance
-      // For testnet, we can use blockstream.info or mempool.space
-      const apiUrl = network === 'mainnet'
-        ? `https://blockstream.info/api/address/${address}`
-        : `https://blockstream.info/testnet/api/address/${address}`;
+      // For testnet4, use mempool.space; for testnet (legacy), use blockstream
+      let apiUrl: string;
+      
+      if (network === 'mainnet') {
+        apiUrl = `https://blockstream.info/api/address/${address}`;
+      } else if (network === 'testnet4') {
+        apiUrl = `https://mempool.space/testnet4/api/address/${address}`;
+      } else {
+        apiUrl = `https://blockstream.info/testnet/api/address/${address}`;
+      }
 
       const response = await fetch(apiUrl);
       const data = await response.json();
@@ -172,13 +186,21 @@ export function BitcoinWalletProvider({
       throw new Error('Wallet not connected');
     }
 
+    // Map network to BitcoinNetworkType
+    let networkType: BitcoinNetworkType;
+    if (network === 'mainnet') {
+      networkType = BitcoinNetworkType.Mainnet;
+    } else if (network === 'testnet4') {
+      networkType = BitcoinNetworkType.Testnet4;
+    } else {
+      networkType = BitcoinNetworkType.Testnet;
+    }
+
     return new Promise((resolve, reject) => {
       const sendBtcOptions = {
         payload: {
           network: {
-            type: network === 'mainnet' 
-              ? BitcoinNetworkType.Mainnet 
-              : BitcoinNetworkType.Testnet,
+            type: networkType,
           },
           recipients: [
             {
@@ -207,13 +229,21 @@ export function BitcoinWalletProvider({
       throw new Error('Wallet not connected');
     }
 
+    // Map network to BitcoinNetworkType
+    let networkType: BitcoinNetworkType;
+    if (network === 'mainnet') {
+      networkType = BitcoinNetworkType.Mainnet;
+    } else if (network === 'testnet4') {
+      networkType = BitcoinNetworkType.Testnet4;
+    } else {
+      networkType = BitcoinNetworkType.Testnet;
+    }
+
     return new Promise((resolve, reject) => {
       const signMessageOptions = {
         payload: {
           network: {
-            type: network === 'mainnet' 
-              ? BitcoinNetworkType.Mainnet 
-              : BitcoinNetworkType.Testnet,
+            type: networkType,
           },
           address: params.address,
           message: params.message,

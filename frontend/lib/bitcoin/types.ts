@@ -28,7 +28,7 @@ export interface XverseAccount {
   balance: BitcoinBalance;
 }
 
-export type BitcoinNetwork = 'mainnet' | 'testnet';
+export type BitcoinNetwork = 'mainnet' | 'testnet' | 'testnet4';
 
 export interface SendBitcoinParams {
   recipient: string;

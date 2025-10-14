@@ -80,7 +80,7 @@ export function formatUSD(amount: number): string {
 /**
  * Validate Bitcoin address
  */
-export function isValidBitcoinAddress(address: string, network: 'mainnet' | 'testnet' = 'testnet'): boolean {
+export function isValidBitcoinAddress(address: string, network: 'mainnet' | 'testnet' | 'testnet4' = 'testnet4'): boolean {
   // Basic validation - should be improved with proper library
   const mainnetRegex = /^(bc1|[13])[a-zA-HJ-NP-Z0-9]{25,62}$/;
   const testnetRegex = /^(tb1|[mn2])[a-zA-HJ-NP-Z0-9]{25,62}$/;
@@ -106,16 +106,22 @@ export function estimateTransactionFee(
 /**
  * Get recommended fee rates
  */
-export async function getFeeRates(network: 'mainnet' | 'testnet' = 'mainnet'): Promise<{
+export async function getFeeRates(network: 'mainnet' | 'testnet' | 'testnet4' = 'mainnet'): Promise<{
   fastestFee: number;
   halfHourFee: number;
   hourFee: number;
   economyFee: number;
 }> {
   try {
-    const apiUrl = network === 'mainnet'
-      ? 'https://mempool.space/api/v1/fees/recommended'
-      : 'https://mempool.space/testnet/api/v1/fees/recommended';
+    let apiUrl: string;
+    
+    if (network === 'mainnet') {
+      apiUrl = 'https://mempool.space/api/v1/fees/recommended';
+    } else if (network === 'testnet4') {
+      apiUrl = 'https://mempool.space/testnet4/api/v1/fees/recommended';
+    } else {
+      apiUrl = 'https://mempool.space/testnet/api/v1/fees/recommended';
+    }
     
     const response = await fetch(apiUrl);
     const data = await response.json();
@@ -149,10 +155,16 @@ export function formatTxId(txid: string): string {
 /**
  * Get block explorer URL for transaction
  */
-export function getExplorerTxUrl(txid: string, network: 'mainnet' | 'testnet' = 'testnet'): string {
-  const baseUrl = network === 'mainnet'
-    ? 'https://mempool.space/tx'
-    : 'https://mempool.space/testnet/tx';
+export function getExplorerTxUrl(txid: string, network: 'mainnet' | 'testnet' | 'testnet4' = 'testnet4'): string {
+  let baseUrl: string;
+  
+  if (network === 'mainnet') {
+    baseUrl = 'https://mempool.space/tx';
+  } else if (network === 'testnet4') {
+    baseUrl = 'https://mempool.space/testnet4/tx';
+  } else {
+    baseUrl = 'https://mempool.space/testnet/tx';
+  }
   
   return `${baseUrl}/${txid}`;
 }
@@ -160,10 +172,16 @@ export function getExplorerTxUrl(txid: string, network: 'mainnet' | 'testnet' = 
 /**
  * Get block explorer URL for address
  */
-export function getExplorerAddressUrl(address: string, network: 'mainnet' | 'testnet' = 'testnet'): string {
-  const baseUrl = network === 'mainnet'
-    ? 'https://mempool.space/address'
-    : 'https://mempool.space/testnet/address';
+export function getExplorerAddressUrl(address: string, network: 'mainnet' | 'testnet' | 'testnet4' = 'testnet4'): string {
+  let baseUrl: string;
+  
+  if (network === 'mainnet') {
+    baseUrl = 'https://mempool.space/address';
+  } else if (network === 'testnet4') {
+    baseUrl = 'https://mempool.space/testnet4/address';
+  } else {
+    baseUrl = 'https://mempool.space/testnet/address';
+  }
   
   return `${baseUrl}/${address}`;
 }
