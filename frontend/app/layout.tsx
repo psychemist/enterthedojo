@@ -1,7 +1,8 @@
+import "./globals.css";
 import type { Metadata } from "next";
 import { Geist, Geist_Mono } from "next/font/google";
-import "./globals.css";
 import { BitcoinWalletProvider } from "../lib/bitcoin/BitcoinWalletContext";
+import { StarknetProvider } from "@/lib/starknet/StarknetProvider";
 
 const geistSans = Geist({
   variable: "--font-geist-sans",
@@ -28,8 +29,11 @@ export default function RootLayout({
       <body
         className={`${geistSans.variable} ${geistMono.variable} antialiased`}
       >
-        <BitcoinWalletProvider network="testnet">
-          {children}
+        {/* <BitcoinWalletProvider network="testnet"> */}
+        <BitcoinWalletProvider network="testnet4">
+          <StarknetProvider>
+            {children}
+          </StarknetProvider>
         </BitcoinWalletProvider>
       </body>
     </html>
