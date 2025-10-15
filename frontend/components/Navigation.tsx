@@ -30,7 +30,7 @@ export default function Navigation() {
               <Gamepad2 className="w-6 h-6 text-white" />
             </div>
             <span className="text-xl font-bold text-white hidden sm:block">
-              Dojo Hub
+              Enter The Dojo
             </span>
           </Link>
 

@@ -8,25 +8,35 @@ export function CartridgeWalletButton() {
   const { connect, connectors } = useConnect();
   const { disconnect } = useDisconnect();
   const [isConnecting, setIsConnecting] = useState(false);
+  const [error, setError] = useState<string | null>(null);
 
-  // Find Cartridge connector
+  // Find Cartridge connector with safe property access
   const cartridgeConnector = connectors.find(
-    (c) => c.id === 'controller' || c.name?.toLowerCase().includes('cartridge')
+    (c) => {
+      try {
+        return c?.id === 'controller' || c?.name?.toLowerCase().includes('cartridge');
+      } catch {
+        return false;
+      }
+    }
   );
 
   const isCartridgeConnected = isConnected && connector?.id === 'controller';
 
   const handleConnect = async () => {
     if (!cartridgeConnector) {
-      alert('Cartridge Controller not available');
+      setError('Cartridge Controller not available');
       return;
     }
 
     setIsConnecting(true);
+    setError(null);
     try {
       await connect({ connector: cartridgeConnector });
-    } catch (error) {
-      console.error('Failed to connect Cartridge:', error);
+    } catch (err) {
+      const errorMessage = err instanceof Error ? err.message : 'Failed to connect Cartridge';
+      console.error('Failed to connect Cartridge:', err);
+      setError(errorMessage);
     } finally {
       setIsConnecting(false);
     }
@@ -80,6 +90,12 @@ export function CartridgeWalletButton() {
           </>
         )}
       </button>
+      
+      {error && (
+        <div className="text-xs text-red-500 text-center p-2 bg-red-50 rounded">
+          {error}
+        </div>
+      )}
       
       <div className="text-xs text-gray-500 text-center">
         Cross-game identity and session management
