@@ -1,5 +1,5 @@
 import { NextRequest, NextResponse } from 'next/server';
-import { MarketplaceListing } from '../../../../../indexer/adapters/types';
+import { MarketplaceListing } from '../../../../indexer/adapters/types';
 
 /**
  * GET /api/marketplace/listings

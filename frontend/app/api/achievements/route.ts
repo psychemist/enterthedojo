@@ -1,5 +1,5 @@
 import { NextRequest, NextResponse } from 'next/server';
-import { PlayerAchievement } from '../../../../indexer/adapters/types';
+import { PlayerAchievement } from '../../../indexer/adapters/types';
 
 /**
  * GET /api/achievements

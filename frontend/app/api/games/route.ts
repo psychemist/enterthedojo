@@ -1,6 +1,6 @@
 import { NextRequest, NextResponse } from 'next/server';
-import { getAdapterRegistry } from '../../../../indexer/adapters';
-import { GameMetadata } from '../../../../indexer/adapters/types';
+import { getAdapterRegistry } from '../../../indexer/adapters';
+import { GameMetadata } from '../../../indexer/adapters/types';
 
 /**
  * GET /api/games
