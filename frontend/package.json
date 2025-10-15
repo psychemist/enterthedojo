@@ -11,6 +11,8 @@
   "dependencies": {
     "@atomiqlabs/chain-starknet": "^5.1.6",
     "@atomiqlabs/sdk": "^6.0.3",
+    "@cartridge/connector": "^0.10.7",
+    "@cartridge/controller": "^0.10.7",
     "@sats-connect/core": "^0.9.0",
     "@stacks/connect": "^8.2.0",
     "@starknet-react/chains": "^5.0.3",
