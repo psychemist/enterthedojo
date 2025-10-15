@@ -17,17 +17,29 @@ import type {
   XverseAccount,
 } from './types';
 
+// Session configuration
+const SESSION_TIMEOUT = 24 * 60 * 60 * 1000; // 24 hours
+const SESSION_REFRESH_INTERVAL = 5 * 60 * 1000; // 5 minutes
+
+interface SessionData {
+  account: XverseAccount;
+  timestamp: number;
+  lastActivity: number;
+}
+
 interface BitcoinWalletContextType {
   isConnected: boolean;
   account: XverseAccount | null;
   network: BitcoinNetwork;
   connecting: boolean;
   error: string | null;
+  sessionExpiry: number | null;
   connect: () => Promise<void>;
   disconnect: () => void;
   sendBitcoin: (params: SendBitcoinParams) => Promise<string>;
   signMessage: (params: SignMessageParams) => Promise<string>;
   refreshBalance: () => Promise<void>;
+  refreshSession: () => void;
 }
 
 const BitcoinWalletContext = createContext<BitcoinWalletContextType | undefined>(undefined);
@@ -43,21 +55,88 @@ export function BitcoinWalletProvider({
   const [account, setAccount] = useState<XverseAccount | null>(null);
   const [connecting, setConnecting] = useState(false);
   const [error, setError] = useState<string | null>(null);
+  const [sessionExpiry, setSessionExpiry] = useState<number | null>(null);
 
-  // Check if wallet is already connected on mount
-  useEffect(() => {
-    const savedAccount = localStorage.getItem('xverse_account');
-    if (savedAccount) {
+  // Save session with timestamp
+  const saveSession = useCallback((accountData: XverseAccount) => {
+    const sessionData: SessionData = {
+      account: accountData,
+      timestamp: Date.now(),
+      lastActivity: Date.now(),
+    };
+    localStorage.setItem('xverse_session', JSON.stringify(sessionData));
+    setSessionExpiry(Date.now() + SESSION_TIMEOUT);
+  }, []);
+
+  // Update last activity timestamp
+  const updateActivity = useCallback(() => {
+    const sessionStr = localStorage.getItem('xverse_session');
+    if (sessionStr) {
       try {
-        const parsed = JSON.parse(savedAccount);
-        setAccount(parsed);
-        setIsConnected(true);
+        const session: SessionData = JSON.parse(sessionStr);
+        session.lastActivity = Date.now();
+        localStorage.setItem('xverse_session', JSON.stringify(session));
       } catch (e) {
-        console.error('Failed to parse saved account:', e);
-        localStorage.removeItem('xverse_account');
+        console.error('Failed to update activity:', e);
       }
     }
   }, []);
+
+  // Check if session is expired
+  const isSessionExpired = useCallback((session: SessionData): boolean => {
+    const age = Date.now() - session.timestamp;
+    const inactivity = Date.now() - session.lastActivity;
+    
+    // Expire if older than 24 hours OR inactive for more than 2 hours
+    return age > SESSION_TIMEOUT || inactivity > (2 * 60 * 60 * 1000);
+  }, []);
+
+  // Refresh session (extend expiry)
+  const refreshSession = useCallback(() => {
+    if (account) {
+      updateActivity();
+      setSessionExpiry(Date.now() + SESSION_TIMEOUT);
+    }
+  }, [account, updateActivity]);
+
+  // Check if wallet is already connected on mount
+  useEffect(() => {
+    const sessionStr = localStorage.getItem('xverse_session');
+    if (sessionStr) {
+      try {
+        const session: SessionData = JSON.parse(sessionStr);
+        
+        if (isSessionExpired(session)) {
+          // Session expired, clean up
+          localStorage.removeItem('xverse_session');
+          setError('Session expired. Please reconnect your wallet.');
+        } else {
+          // Restore session
+          setAccount(session.account);
+          setIsConnected(true);
+          setSessionExpiry(session.timestamp + SESSION_TIMEOUT);
+          
+          // Fetch fresh balance
+          fetchBalance(session.account.addresses.payment.address);
+        }
+      } catch (e) {
+        console.error('Failed to restore session:', e);
+        localStorage.removeItem('xverse_session');
+      }
+    }
+  // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, []);
+
+  // Auto-refresh session periodically
+  useEffect(() => {
+    if (!isConnected || !account) return;
+
+    const interval = setInterval(() => {
+      updateActivity();
+    }, SESSION_REFRESH_INTERVAL);
+
+    return () => clearInterval(interval);
+  }, [isConnected, account, updateActivity]);
 
   const connect = useCallback(async () => {
     try {
@@ -116,7 +195,7 @@ export function BitcoinWalletProvider({
 
           setAccount(newAccount);
           setIsConnected(true);
-          localStorage.setItem('xverse_account', JSON.stringify(newAccount));
+          saveSession(newAccount);
 
           // Fetch balance after connection
           fetchBalance(paymentAddress.address);
@@ -136,13 +215,14 @@ export function BitcoinWalletProvider({
       setConnecting(false);
     }
   // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [network]);
+  }, [network, saveSession]);
 
   const disconnect = useCallback(() => {
     setAccount(null);
     setIsConnected(false);
     setError(null);
-    localStorage.removeItem('xverse_account');
+    setSessionExpiry(null);
+    localStorage.removeItem('xverse_session');
   }, []);
 
   const fetchBalance = useCallback(async (address: string) => {
@@ -266,11 +346,13 @@ export function BitcoinWalletProvider({
     network,
     connecting,
     error,
+    sessionExpiry,
     connect,
     disconnect,
     sendBitcoin,
     signMessage,
     refreshBalance,
+    refreshSession,
   };
 
   return (

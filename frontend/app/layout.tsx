@@ -3,6 +3,7 @@ import type { Metadata } from "next";
 import { Geist, Geist_Mono } from "next/font/google";
 import { BitcoinWalletProvider } from "../lib/bitcoin/BitcoinWalletContext";
 import { StarknetProvider } from "@/lib/starknet/StarknetProvider";
+import { SessionManager } from "@/components/SessionManager";
 import Navigation from "@/components/Navigation";
 
 const geistSans = Geist({
@@ -34,6 +35,7 @@ export default function RootLayout({
         <BitcoinWalletProvider network="testnet4">
           <StarknetProvider>
             <Navigation />
+            <SessionManager />
             <main className="pt-16">
               {children}
             </main>

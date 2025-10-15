@@ -32,3 +32,6 @@ export { PurchaseFlow } from './PurchaseFlow';
 
 // Navigation
 export { default as Navigation } from './Navigation';
+
+// Session Management
+export { SessionManager } from './SessionManager';
